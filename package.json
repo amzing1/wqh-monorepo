@@ -1,31 +1,34 @@
 {
-  "name": "monorepo-test",
+  "name": "@wqh-monorepo/root",
+  "private": true,
   "version": "0.1.0",
-  "author": {
-    "email": "1632726788@qq.com",
-    "name": "wqh"
-  },
+  "description": "A repository about monorepo & wqh's fe scripts",
+  "author": "wqh",
+  "license": "MIT",
   "scripts": {
-    "eslint": "eslint ./ --ext .ts,.js,.json --max-warnings=0",
-    "prettier": "prettier --config .prettierrc '.' --write",
-    "pre-commit": "lint-staged"
+    "prepare": "husky install",
+    "cz": "cz",
+    "__eslit__comment__": "查阅eslint文档 https://eslint.org/docs/latest/use/command-line-interface 了解cli工具的options",
+    "lint": "eslint ./ --ext .ts,.js,.json --max-warnings=0",
+    "__prettier__comment": "查阅prettier文档 https://prettier.io/docs/en/cli 了解cli工具的options, 查询链接https://prettier.io/docs/en/watching-files, https://www.npmjs.com/package/onchange 获取onchange文档",
+    "format": "prettier --config .prettierrc '.' --write"
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.3.0",
-    "@commitlint/config-conventional": "^19.2.2",
-    "@types/node": "^20.12.8",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.1.3",
-    "husky": "^9.0.11",
-    "lint-staged": "^15.2.2",
-    "prettier": "^3.2.5",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.4.5"
-  },
-  "lint-staged": {
-    "*.{js,ts,vue,jsx,tsx}": [
-      "npm run eslint"
-    ],
-    "*.{js,jsx,ts,tsx,md,html,css,lees,scss,sass}": "prettier --write"
+    "@commitlint/cli": "^17.7.1",
+    "@commitlint/config-conventional": "^17.7.0",
+    "@types/node": "^20.5.9",
+    "@typescript-eslint/eslint-plugin": "^6.6.0",
+    "@typescript-eslint/parser": "^6.6.0",
+    "commitizen": "^4.3.0",
+    "cz-conventional-changelog": "^3.3.0",
+    "eslint": "^8.48.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^14.0.1",
+    "onchange": "^7.1.0",
+    "prettier": "^3.0.3",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
   }
 }

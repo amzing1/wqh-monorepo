@@ -1,0 +1,10 @@
+{
+  "name": "@wqh-monorepo/ex-app",
+  "private": "true",
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": "wqh",
+  "dependencies": {
+    "@wqh-monorepo/utils": "workspace:^"
+  }
+}
