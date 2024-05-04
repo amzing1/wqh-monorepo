@@ -1,0 +1,9 @@
+{
+  "name": "@monorepo/utils",
+  "private": true,
+  "version": "0.1.0",
+  "description": "local utils package",
+  "author": "wqh",
+  "license": "MIT",
+  "main": "./src/index.ts"
+}

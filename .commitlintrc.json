@@ -1,0 +1,11 @@
+{
+  "extends": [
+    "@commitlint/config-preventional"
+  ],
+  "rules": {
+    "scope-empty": [
+      2,
+      "never"
+    ]
+  }
+}

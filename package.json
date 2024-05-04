@@ -1,0 +1,31 @@
+{
+  "name": "monorepo-test",
+  "version": "0.1.0",
+  "author": {
+    "email": "1632726788@qq.com",
+    "name": "wqh"
+  },
+  "scripts": {
+    "eslint": "eslint ./ --ext .ts,.js,.json --max-warnings=0",
+    "prettier": "prettier --config .prettierrc '.' --write",
+    "pre-commit": "lint-staged"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.3.0",
+    "@commitlint/config-conventional": "^19.2.2",
+    "@types/node": "^20.12.8",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.2",
+    "prettier": "^3.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  },
+  "lint-staged": {
+    "*.{js,ts,vue,jsx,tsx}": [
+      "npm run eslint"
+    ],
+    "*.{js,jsx,ts,tsx,md,html,css,lees,scss,sass}": "prettier --write"
+  }
+}

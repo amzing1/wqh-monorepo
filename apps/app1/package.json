@@ -1,0 +1,13 @@
+{
+  "name": "@monorepo/app1",
+  "version": "0.1.0",
+  "author": "wqh",
+  "description": "example app1",
+  "license": "MIT",
+  "scripts": {
+    "debug": "node-tsc"
+  },
+  "dependencies": {
+    "@monorepo/utils": "workspace:^"
+  }
+}
