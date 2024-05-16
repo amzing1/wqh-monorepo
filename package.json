@@ -11,7 +11,8 @@
     "__eslit__comment__": "查阅eslint文档 https://eslint.org/docs/latest/use/command-line-interface 了解cli工具的options",
     "lint": "eslint ./ --ext .ts,.js,.json --max-warnings=0",
     "__prettier__comment": "查阅prettier文档 https://prettier.io/docs/en/cli 了解cli工具的options, 查询链接https://prettier.io/docs/en/watching-files, https://www.npmjs.com/package/onchange 获取onchange文档",
-    "format": "prettier --config .prettierrc '.' --write"
+    "format": "prettier --config .prettierrc '.' --write",
+    "test": "vitest"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.7.1",
@@ -26,9 +27,11 @@
     "eslint-plugin-prettier": "^5.0.0",
     "husky": "^8.0.3",
     "lint-staged": "^14.0.1",
+    "node-tsc": "^0.0.14",
     "onchange": "^7.1.0",
     "prettier": "^3.0.3",
     "ts-node": "^10.9.1",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "vitest": "^1.6.0"
   }
 }

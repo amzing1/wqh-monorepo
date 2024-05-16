@@ -1,0 +1,13 @@
+{
+  "name": "@wqh-monorepo/mini-vue",
+  "author": "wqh",
+  "license": "MIT",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "vite"
+  },
+  "devDependencies": {
+    "vite": "^5.2.11"
+  }
+}
