@@ -3,6 +3,8 @@
  * 设置对象属性的时候将桶中的副作用函数拿出来执行 trigger
  */
 
+import { arrayInstrumentations } from './arrayInstrumentations';
+
 type Fn = (...args: any[]) => any;
 type VObj = Record<PropertyKey, any>;
 type Bucket = WeakMap<VObj, Map<PropertyKey, Set<EffectFnWithDeps>>>;
@@ -22,10 +24,16 @@ type WatchOptions = {
   immediate?: boolean;
   flush?: 'post' | 'sync' | 'pre';
 };
+type ReactiveOptions = {
+  isShallow: boolean;
+  isReadOnly: boolean;
+};
 
 const bucket: Bucket = new WeakMap();
 let activeEffect: EffectFnWithDeps | null = null;
 const effectStack: EffectFnWithDeps[] = []; // 组件嵌套的情况下
+const ITERATE_KEY = Symbol(); // ownKeys / for in track
+const reactiveMap = new Map<VObj, VObj>();
 
 function effect(fn: EffectFn, options: SetAttr<EffectOptions, 'lazy', true>): EffectFnWithDeps;
 function effect(fn: EffectFn, options: EffectOptions): undefined;
@@ -74,16 +82,52 @@ function track(target: VObj, p: PropertyKey) {
   depsMap.set(p, deps);
   bucket.set(target, depsMap);
 }
-function trigger(target: VObj, p: PropertyKey) {
+function trigger(target: VObj, p: PropertyKey, type: 'SET' | 'ADD' | 'DELETE', newValue: number | undefined) {
   const depsMap = bucket.get(target);
   if (depsMap) {
     const depsSet = depsMap.get(p);
-    const depsToRun = new Set(depsSet);
-    depsToRun?.forEach((v) => {
+    const iterateSet = depsMap.get(ITERATE_KEY);
+    const lengthSet = depsMap.get('length');
+    const depsToRun = new Set<EffectFnWithDeps>();
+    depsSet?.forEach((v) => {
       // proxy.value++ 会出现无限递归
-      if (v === activeEffect) {
-        return;
+      if (v !== activeEffect) {
+        depsToRun.add(v);
       }
+    });
+
+    /**对象添加或者删除属性 */
+    if (!Array.isArray(target) && (type === 'ADD' || type === 'DELETE')) {
+      iterateSet?.forEach((v) => {
+        if (v !== activeEffect) {
+          depsToRun.add(v);
+        }
+      });
+    }
+
+    /**数组添加元素可能会触发 length 修改 */
+    if (Array.isArray(target) && type === 'ADD') {
+      lengthSet?.forEach((v) => {
+        if (v !== activeEffect) {
+          depsToRun.add(v);
+        }
+      });
+    }
+
+    /**修改数组的 length 属性，需要把数组内索引 >= length 的所有元素相关联的副作用函数取出并执行 */
+    if (Array.isArray(target) && p === 'length') {
+      depsMap.forEach((effects, key) => {
+        if (Number(key) >= newValue!) {
+          effects.forEach((fn) => {
+            if (fn !== activeEffect) {
+              depsToRun.add(fn);
+            }
+          });
+        }
+      });
+    }
+
+    depsToRun.forEach((v) => {
       // 通过调度器来将控制权交给用户
       if (v.options.scheduler) {
         v.options.scheduler(v);
@@ -93,18 +137,71 @@ function trigger(target: VObj, p: PropertyKey) {
     });
   }
 }
-const createReactive = <T extends VObj>(data: T) => {
+const createReactive = <T extends VObj>(data: T, options: ReactiveOptions) => {
+  const existionProxy = reactiveMap.get(data);
+  if (existionProxy) {
+    return existionProxy;
+  }
   const proxy: T = new Proxy(data, {
-    get(target: T, p: string | symbol) {
-      track(target, p);
-      return target[p];
+    get(target: T, p: string | symbol, receiver) {
+      // 获取被代理对象，在 trigger 中屏蔽由原型引起的更新
+      if (p === 'raw') {
+        return target;
+      }
+      if (Array.isArray(target) && p in arrayInstrumentations) {
+        return Reflect.get(arrayInstrumentations, p, receiver);
+      }
+      if (!options.isReadOnly && typeof p !== 'symbol') {
+        track(target, p);
+      }
+      const res = Reflect.get(target, p, receiver);
+      if (!options.isShallow && typeof res === 'object' && res !== null) {
+        //深响应
+        return createReactive(res, options);
+      }
+      return res;
     },
-    set(target: T, p: keyof T, newValue: any) {
-      target[p] = newValue;
-      trigger(target, p);
-      return true;
+    set(target: T, p: keyof T, newValue: any, receiver: any) {
+      if (options.isReadOnly) {
+        console.warn(`是只读的`);
+        return true;
+      }
+      const oldValue = target[p];
+      let type: 'SET' | 'ADD' = 'SET';
+      if (Array.isArray(target)) {
+        type = Number(p) >= target.length ? 'ADD' : 'SET';
+      } else {
+        type = Object.prototype.hasOwnProperty.call(target, p) ? 'SET' : 'ADD';
+      }
+      const res = Reflect.set(target, p, newValue, receiver);
+      if (target === receiver.raw && !Object.is(oldValue, newValue)) {
+        trigger(target, p, type, newValue);
+      }
+      return res;
+    },
+    has(target: T, p: string | symbol) {
+      track(target, p);
+      return Reflect.has(target, p);
+    },
+    ownKeys(target: T) {
+      const key = Array.isArray(target) ? 'length' : ITERATE_KEY;
+      track(target, key);
+      return Reflect.ownKeys(target);
+    },
+    deleteProperty(target: T, p: string | symbol) {
+      if (options.isReadOnly) {
+        console.warn(`是只读的`);
+        return true;
+      }
+      const hadKey = Object.prototype.hasOwnProperty.call(target, p);
+      const res = Reflect.deleteProperty(target, p);
+      if (res && hadKey) {
+        trigger(target, p, 'DELETE', undefined);
+      }
+      return res;
     },
   });
+  reactiveMap.set(data, proxy);
   return proxy;
 };
 
@@ -117,14 +214,13 @@ function computed(getter: Fn) {
     scheduler() {
       if (!dirty) {
         dirty = true;
-        trigger(obj, 'value');
+        trigger(obj, 'value', 'SET', undefined);
       }
     },
   });
   const obj = {
     get value() {
       if (dirty) {
-        console.log('computed get');
         res = effectFn();
         dirty = false;
       }
@@ -179,18 +275,4 @@ function watch(source: Record<string, any> | EffectFn, cb: Fn, options: WatchOpt
   }
 }
 
-const data = {
-  foo: 1,
-  bar: 2,
-};
-const obj = createReactive(data);
-watch(
-  () => obj.foo,
-  () => {
-    console.log('foo changed');
-  },
-  {},
-);
-obj.foo++;
-
-export { computed, createReactive, effect };
+export { computed, createReactive, effect, watch };
