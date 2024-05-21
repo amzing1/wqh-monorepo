@@ -32,7 +32,7 @@ function effect(fn: EffectFn, options: EffectOptions): undefined;
 function effect(fn: EffectFn): undefined;
 function effect(
   fn: EffectFn,
-  options: EffectOptions | SetAttr<EffectOptions, 'lazy', true> = {},
+  options: EffectOptions | SetAttr<EffectOptions, 'lazy', true> = {}
 ): undefined | EffectFnWithDeps {
   const cleanup = (fn: EffectFnWithDeps) => {
     for (let i = 0; i < fn.deps.length; i++) {
@@ -103,7 +103,7 @@ const createReactive = <T extends VObj>(data: T) => {
       target[p] = newValue;
       trigger(target, p);
       return true;
-    },
+    }
   });
   return proxy;
 };
@@ -119,7 +119,7 @@ function computed(getter: Fn) {
         dirty = true;
         trigger(obj, 'value');
       }
-    },
+    }
   });
   const obj = {
     get value() {
@@ -130,7 +130,7 @@ function computed(getter: Fn) {
       }
       track(obj, 'value');
       return res;
-    },
+    }
   };
   return obj;
 }
@@ -170,7 +170,7 @@ function watch(source: Record<string, any> | EffectFn, cb: Fn, options: WatchOpt
   let cleanup: Fn; // 竞态问题
   const watchEffect = effect(fn, {
     lazy: true,
-    scheduler: job,
+    scheduler: job
   });
   if (options.immediate) {
     job();
@@ -181,7 +181,7 @@ function watch(source: Record<string, any> | EffectFn, cb: Fn, options: WatchOpt
 
 const data = {
   foo: 1,
-  bar: 2,
+  bar: 2
 };
 const obj = createReactive(data);
 watch(
@@ -189,7 +189,7 @@ watch(
   () => {
     console.log('foo changed');
   },
-  {},
+  {}
 );
 obj.foo++;
 
