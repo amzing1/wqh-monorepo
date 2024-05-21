@@ -20,6 +20,7 @@
     "@types/node": "^20.5.9",
     "@typescript-eslint/eslint-plugin": "^6.6.0",
     "@typescript-eslint/parser": "^6.6.0",
+    "autoprefixer": "^10.4.19",
     "commitizen": "^4.3.0",
     "cz-conventional-changelog": "^3.3.0",
     "eslint": "^8.48.0",
@@ -29,9 +30,12 @@
     "lint-staged": "^14.0.1",
     "node-tsc": "^0.0.14",
     "onchange": "^7.1.0",
+    "postcss": "^8.4.38",
     "prettier": "^3.0.3",
+    "tailwindcss": "^3.4.3",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2",
+    "vite": "^5.2.11",
     "vitest": "^1.6.0"
   }
 }

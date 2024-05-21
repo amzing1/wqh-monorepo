@@ -40,7 +40,7 @@ function effect(fn: EffectFn, options: EffectOptions): undefined;
 function effect(fn: EffectFn): undefined;
 function effect(
   fn: EffectFn,
-  options: EffectOptions | SetAttr<EffectOptions, 'lazy', true> = {},
+  options: EffectOptions | SetAttr<EffectOptions, 'lazy', true> = {}
 ): undefined | EffectFnWithDeps {
   const cleanup = (fn: EffectFnWithDeps) => {
     for (let i = 0; i < fn.deps.length; i++) {
@@ -199,7 +199,7 @@ const createReactive = <T extends VObj>(data: T, options: ReactiveOptions) => {
         trigger(target, p, 'DELETE', undefined);
       }
       return res;
-    },
+    }
   });
   reactiveMap.set(data, proxy);
   return proxy;
@@ -216,7 +216,7 @@ function computed(getter: Fn) {
         dirty = true;
         trigger(obj, 'value', 'SET', undefined);
       }
-    },
+    }
   });
   const obj = {
     get value() {
@@ -226,7 +226,7 @@ function computed(getter: Fn) {
       }
       track(obj, 'value');
       return res;
-    },
+    }
   };
   return obj;
 }
@@ -266,7 +266,7 @@ function watch(source: Record<string, any> | EffectFn, cb: Fn, options: WatchOpt
   let cleanup: Fn; // 竞态问题
   const watchEffect = effect(fn, {
     lazy: true,
-    scheduler: job,
+    scheduler: job
   });
   if (options.immediate) {
     job();
