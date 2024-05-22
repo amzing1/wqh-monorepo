@@ -1,0 +1,11 @@
+{
+  "name": "@wqh-monorepo/tailwind-config",
+  "version": "0.1.0",
+  "private": "true",
+  "main": "index.ts",
+  "dependencies": {
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.3"
+  }
+}
