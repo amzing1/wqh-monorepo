@@ -3,7 +3,7 @@
  * 设置对象属性的时候将桶中的副作用函数拿出来执行 trigger
  */
 
-import { arrayInstrumentations } from './arrayInstrumentations';
+import { arrayInstrumentations, shouldTrack } from './arrayInstrumentations';
 
 type Fn = (...args: any[]) => any;
 type VObj = Record<PropertyKey, any>;
@@ -25,17 +25,20 @@ type WatchOptions = {
   flush?: 'post' | 'sync' | 'pre';
 };
 type ReactiveOptions = {
-  isShallow: boolean;
-  isReadOnly: boolean;
+  isShallow?: boolean;
+  isReadOnly?: boolean;
 };
 
 const bucket: Bucket = new WeakMap();
 let activeEffect: EffectFnWithDeps | null = null;
 const effectStack: EffectFnWithDeps[] = []; // 组件嵌套的情况下
-const ITERATE_KEY = Symbol(); // ownKeys / for in track
+export const ITERATE_KEY = Symbol(); // ownKeys / for in track
 const reactiveMap = new Map<VObj, VObj>();
 
-function effect(fn: EffectFn, options: SetAttr<EffectOptions, 'lazy', true>): EffectFnWithDeps;
+function effect(
+  fn: EffectFn,
+  options: SetAttr<EffectOptions, 'lazy', true>
+): EffectFnWithDeps;
 function effect(fn: EffectFn, options: EffectOptions): undefined;
 function effect(fn: EffectFn): undefined;
 function effect(
@@ -68,7 +71,7 @@ function effect(
 }
 
 function track(target: VObj, p: PropertyKey) {
-  if (!activeEffect) return;
+  if (!activeEffect || !shouldTrack) return;
   let depsMap = bucket.get(target);
   if (!depsMap) {
     depsMap = new Map();
@@ -82,7 +85,12 @@ function track(target: VObj, p: PropertyKey) {
   depsMap.set(p, deps);
   bucket.set(target, depsMap);
 }
-function trigger(target: VObj, p: PropertyKey, type: 'SET' | 'ADD' | 'DELETE', newValue: number | undefined) {
+function trigger(
+  target: VObj,
+  p: PropertyKey,
+  type: 'SET' | 'ADD' | 'DELETE',
+  newValue: number | undefined
+) {
   const depsMap = bucket.get(target);
   if (depsMap) {
     const depsSet = depsMap.get(p);
@@ -137,7 +145,10 @@ function trigger(target: VObj, p: PropertyKey, type: 'SET' | 'ADD' | 'DELETE', n
     });
   }
 }
-const createReactive = <T extends VObj>(data: T, options: ReactiveOptions) => {
+const createReactive = <T extends VObj>(
+  data: T,
+  options: ReactiveOptions | undefined = {}
+) => {
   const existionProxy = reactiveMap.get(data);
   if (existionProxy) {
     return existionProxy;
@@ -150,6 +161,18 @@ const createReactive = <T extends VObj>(data: T, options: ReactiveOptions) => {
       }
       if (Array.isArray(target) && p in arrayInstrumentations) {
         return Reflect.get(arrayInstrumentations, p, receiver);
+      }
+      // TODO 对 set 和 map 的代理
+      if (target instanceof Set || target instanceof Map) {
+        // Set 上的 size 属性是个访问器属性，调用 size 的过程中会检查 this 上是否存在 [[SetData]] 槽
+        // 代理对象上没有这个槽，会报错，所以此处 this 应该还是指向源对象
+        if (p === 'size') {
+          track(target, ITERATE_KEY);
+          return Reflect.get(target, p, target);
+        }
+        // Set / Map 上的方法也是同理
+        // if (['add', ''])
+        // return mutableInstrumentations[p];
       }
       if (!options.isReadOnly && typeof p !== 'symbol') {
         track(target, p);
@@ -233,7 +256,11 @@ function computed(getter: Fn) {
 // watch 的实现
 function watch(getter: EffectFn, cb: Fn, options: WatchOptions): void;
 function watch(obj: Record<string, any>, cb: Fn, options: WatchOptions): void;
-function watch(source: Record<string, any> | EffectFn, cb: Fn, options: WatchOptions = {}): void {
+function watch(
+  source: Record<string, any> | EffectFn,
+  cb: Fn,
+  options: WatchOptions = {}
+): void {
   const traverse = (source: any, seen: Set<any> = new Set()) => {
     if (typeof source !== 'object' || source === null || seen.has(source)) {
       return;
@@ -275,4 +302,15 @@ function watch(source: Record<string, any> | EffectFn, cb: Fn, options: WatchOpt
   }
 }
 
-export { computed, createReactive, effect, watch };
+function ref(data: any) {
+  const wrapper = {
+    value: data
+  };
+  Object.defineProperty(wrapper, '__v_isRef', {
+    value: true
+  });
+
+  return createReactive(wrapper);
+}
+
+export { computed, createReactive, effect, ref, track, trigger, watch };
