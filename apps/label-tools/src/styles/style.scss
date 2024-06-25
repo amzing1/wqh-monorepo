@@ -1,0 +1,12 @@
+@import 'heywhale-ui/dist/styles/modelwhale.css';
+@import './iconfont.css';
+
+body {
+  font-size: 14px;
+}
+
+@layer components {
+  .flex-center {
+    @apply flex items-center;
+  }
+}

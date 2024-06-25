@@ -8,3 +8,11 @@ node_modules/
 **/package.json
 
 *.html
+
+*.ttf
+*.woff
+*.woff2
+*.svg
+*.png
+
+*.scss
