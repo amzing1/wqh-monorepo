@@ -13,7 +13,8 @@
     "__prettier__comment": "查阅prettier文档 https://prettier.io/docs/en/cli 了解cli工具的options, 查询链接https://prettier.io/docs/en/watching-files, https://www.npmjs.com/package/onchange 获取onchange文档",
     "format": "prettier --config .prettierrc '.' --write",
     "test": "vitest",
-    "dev:label-tools": "pnpm -r --filter=@wqh-monorepo/label-tools run dev"
+    "dev:label-tools": "pnpm -r --filter=@wqh-monorepo/label-tools run dev",
+    "new-app": "plop"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.7.1",
@@ -33,5 +34,8 @@
     "typescript": "^5.2.2",
     "vite": "^5.2.11",
     "vitest": "^1.6.0"
+  },
+  "dependencies": {
+    "plop": "^4.0.1"
   }
 }
