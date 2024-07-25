@@ -1,0 +1,82 @@
+import redFragWGSL from './shaders/frag.wgsl?raw';
+import triangleVertWGSL from './shaders/vertex.wgsl?raw';
+const canvas = document.querySelector('canvas') as HTMLCanvasElement;
+const adapter = await navigator.gpu?.requestAdapter();
+const device = await adapter?.requestDevice();
+if (!adapter || !device) {
+  throw Error('init gpu failed');
+}
+const context = canvas.getContext('webgpu') as GPUCanvasContext;
+
+const devicePixelRatio = window.devicePixelRatio;
+canvas.width = canvas.clientWidth * devicePixelRatio;
+canvas.height = canvas.clientHeight * devicePixelRatio;
+const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
+context.configure({
+  device,
+  format: presentationFormat,
+  alphaMode: 'premultiplied'
+});
+
+const sampleCount = 4;
+
+const pipeline = device.createRenderPipeline({
+  layout: 'auto',
+  vertex: {
+    module: device.createShaderModule({
+      code: triangleVertWGSL
+    })
+  },
+  fragment: {
+    module: device.createShaderModule({
+      code: redFragWGSL
+    }),
+    targets: [
+      {
+        format: presentationFormat
+      }
+    ]
+  },
+  primitive: {
+    topology: 'triangle-list'
+  },
+  multisample: {
+    count: sampleCount
+  }
+});
+
+const texture = device.createTexture({
+  size: [canvas.width, canvas.height],
+  sampleCount,
+  format: presentationFormat,
+  usage: GPUTextureUsage.RENDER_ATTACHMENT
+});
+const view = texture.createView();
+
+function frame() {
+  const commandEncoder = device!.createCommandEncoder();
+  const textureView = context.getCurrentTexture().createView();
+
+  const renderPassDescriptor: GPURenderPassDescriptor = {
+    colorAttachments: [
+      {
+        view,
+        resolveTarget: textureView,
+        clearValue: [0, 0, 0, 1],
+        loadOp: 'clear',
+        storeOp: 'store'
+      }
+    ]
+  };
+
+  const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+  passEncoder.setPipeline(pipeline);
+  passEncoder.draw(3);
+  passEncoder.end();
+
+  device!.queue.submit([commandEncoder.finish()]);
+  requestAnimationFrame(frame);
+}
+
+requestAnimationFrame(frame);
+export {};

@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.option.json",
+  "compilerOptions": {
+    "typeRoots": ["./node_modules/@webgpu/types"],
+    "module": "ESNext",
+    "target": "ES2023",
+    "resolveJsonModule": false
+  }
+}

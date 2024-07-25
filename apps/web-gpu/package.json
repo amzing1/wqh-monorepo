@@ -1,0 +1,14 @@
+{
+  "name": "@wqh-monorepo/web-gpu",
+  "version": "0.1.0",
+  "private": "true",
+  "license": "MIT",
+  "author": "wqh",
+  "type": "module",
+  "scripts": {
+    "dev": "vite"
+  },
+  "devDependencies": {
+    "@webgpu/types": "^0.1.44"
+  }
+}

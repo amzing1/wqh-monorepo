@@ -1,0 +1,17 @@
+{
+  "name": "@wqh-monorepo/test-inversify",
+  "author": "wqh",
+  "license": "MIT",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "vite"
+  },
+  "devDependencies": {
+    "vite": "^5.2.11"
+  },
+  "dependencies": {
+    "inversify": "^6.0.2",
+    "reflect-metadata": "^0.2.2"
+  }
+}
